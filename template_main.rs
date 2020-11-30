@@ -1,7 +1,7 @@
 use std::io::{BufRead, BufReader};
 
 fn main() {
-    let file = std::fs::File::open("./input.txt").unwrap();
+    let file = std::fs::File::open("./input").unwrap();
     let mut input = BufReader::new(file);
 
     let mut line = String::new();
