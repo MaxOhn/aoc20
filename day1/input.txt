@@ -1,0 +1,4 @@
+some line
+another line
+
+previous was blank
