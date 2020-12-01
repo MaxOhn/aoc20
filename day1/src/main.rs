@@ -1,6 +1,8 @@
 use std::io::{BufRead, BufReader};
+use std::time::Instant;
 
 fn main() {
+    let start = Instant::now();
     let file = std::fs::File::open("./input").unwrap();
     let mut input = BufReader::new(file);
 
@@ -12,40 +14,40 @@ fn main() {
         line.clear();
     }
 
-    part1(&numbers); // 2.1µs
-    part2(&numbers); // 23.5µs
+    numbers.sort();
+
+    println!("Setup: {:?}", start.elapsed()); // 103.9µs
+
+    part1(&numbers); // 800ns
+    part2(&numbers); // 3.9µs
 }
 
 fn part1(numbers: &[u32]) {
-    let start = std::time::Instant::now();
+    let start = Instant::now();
     for i in 0..numbers.len() {
-        for j in i + 1..numbers.len() {
-            if numbers[i] + numbers[j] == 2020 {
-                return println!(
-                    "Part 1: {} [{:?}]",
-                    numbers[i] * numbers[j],
-                    start.elapsed()
-                );
-            }
+        if let Ok(j) = numbers.binary_search(&(2020 - numbers[i])) {
+            return println!(
+                "Part 1: {} [{:?}]",
+                numbers[i] * numbers[j],
+                start.elapsed()
+            );
         }
     }
 }
 
 fn part2(numbers: &[u32]) {
-    let start = std::time::Instant::now();
+    let start = Instant::now();
     for i in 0..numbers.len() {
         for j in i + 1..numbers.len() {
             if numbers[i] + numbers[j] > 2020 {
-                continue;
+                break;
             }
-            for k in j + 1..numbers.len() {
-                if numbers[i] + numbers[j] + numbers[k] == 2020 {
-                    return println!(
-                        "Part 2: {} [{:?}]",
-                        numbers[i] * numbers[j] * numbers[k],
-                        start.elapsed()
-                    );
-                }
+            if let Ok(k) = numbers.binary_search(&(2020 - numbers[i] - numbers[j])) {
+                return println!(
+                    "Part 2: {} [{:?}]",
+                    numbers[i] * numbers[j] * numbers[k],
+                    start.elapsed()
+                );
             }
         }
     }
