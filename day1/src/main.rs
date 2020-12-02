@@ -18,37 +18,37 @@ fn main() {
 
     println!("Setup: {:?}", start.elapsed()); // 103µs
 
-    part1(&numbers); // 600ns
-    part2(&numbers); // 2.5µs
+    let start = Instant::now();
+    let p1 = part1(&numbers);
+    println!("Part 1: {} [{:?}]", p1, start.elapsed()); // 600ns
+
+    let start = Instant::now();
+    let p2 = part2(&numbers);
+    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 2.5µs
+
+    assert_eq!(p1, 326211);
+    assert_eq!(p2, 131347190);
 }
 
-fn part1(numbers: &[u32]) {
-    let start = Instant::now();
+fn part1(numbers: &[u32]) -> u32 {
     for i in 0..numbers.len() {
         if let Ok(j) = numbers[i + 1..].binary_search(&(2020 - numbers[i])) {
-            return println!(
-                "Part 1: {} [{:?}]",
-                numbers[i] * numbers[j + i + 1],
-                start.elapsed()
-            );
+            return numbers[i] * numbers[j + i + 1];
         }
     }
+    unreachable!()
 }
 
-fn part2(numbers: &[u32]) {
-    let start = Instant::now();
+fn part2(numbers: &[u32]) -> u32 {
     for i in 0..numbers.len() {
         for j in i + 1..numbers.len() {
             if numbers[i] + numbers[j] > 2020 {
                 break;
             }
             if let Ok(k) = numbers[j + 1..].binary_search(&(2020 - numbers[i] - numbers[j])) {
-                return println!(
-                    "Part 2: {} [{:?}]",
-                    numbers[i] * numbers[j] * numbers[k + j + 1],
-                    start.elapsed()
-                );
+                return numbers[i] * numbers[j] * numbers[k + j + 1];
             }
         }
     }
+    unreachable!()
 }
