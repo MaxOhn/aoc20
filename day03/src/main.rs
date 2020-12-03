@@ -21,7 +21,7 @@ fn main() {
     let mut y = 0;
 
     while input.read_line(&mut line).unwrap() != 0 {
-        let trimmed = line.trim();
+        let trimmed = line.trim_end();
 
         for counter in unsafe { COUNTERS.iter_mut() } {
             counter.update(trimmed);

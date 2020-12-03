@@ -10,7 +10,7 @@ fn main() {
     let mut numbers = Vec::with_capacity(200);
 
     while input.read_line(&mut line).unwrap() != 0 {
-        numbers.push(line.trim().parse().unwrap());
+        numbers.push(line.trim_end().parse().unwrap());
         line.clear();
     }
 

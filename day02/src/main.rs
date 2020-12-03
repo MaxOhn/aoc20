@@ -19,7 +19,7 @@ fn main() {
         let min = range.next().unwrap().parse().unwrap();
         let max = range.next().unwrap().parse().unwrap();
         let letter = policy.next().unwrap().chars().next().unwrap();
-        let password = split.next().unwrap().trim();
+        let password = split.next().unwrap().trim_end();
 
         if part1(min, max, letter, password) {
             p1 += 1;
