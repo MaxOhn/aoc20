@@ -23,6 +23,7 @@ fn main() {
     while input.read_line(&mut line).unwrap() != 0 {
         let trimmed = line.trim_end();
 
+        // SAFETY: There is no concurrency
         for counter in unsafe { COUNTERS.iter_mut() } {
             counter.update(trimmed);
         }
@@ -38,6 +39,7 @@ fn main() {
         line.clear();
     }
 
+    // SAFETY: There is no concurrency
     let p1 = unsafe { COUNTERS[1].count };
     let p2 = unsafe { COUNTERS.iter() }
         .map(|counter| counter.count)
