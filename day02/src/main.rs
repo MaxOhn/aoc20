@@ -12,15 +12,13 @@ fn main() {
     let mut p1 = 0;
     let mut p2 = 0;
 
-    let delims: [char; 3] = ['-', ':', ' '];
-
     while input.read_line(&mut line).unwrap() != 0 {
-        let mut split = line.split(delims.as_ref());
-
+        let mut split = line.split('-');
         let min = split.next().unwrap().parse().unwrap();
+        let mut split = split.next().unwrap().split(' ');
         let max = split.next().unwrap().parse().unwrap();
         let letter = split.next().unwrap().as_bytes()[0];
-        let password = split.nth(1).unwrap().as_bytes();
+        let password = split.next().unwrap().as_bytes();
 
         if part1(min, max, letter, password) {
             p1 += 1;
