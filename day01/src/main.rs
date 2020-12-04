@@ -14,7 +14,7 @@ fn main() {
         line.clear();
     }
 
-    numbers.sort();
+    numbers.sort_unstable();
 
     println!("Setup: {:?}", start.elapsed()); // 103µs
 
