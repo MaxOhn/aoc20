@@ -35,45 +35,31 @@ fn main() {
 
     while input.read_line(&mut line).unwrap() != 0 {
         if line.trim_end().is_empty() {
-            if p1_count == 7 {
-                p1 += 1;
-            }
-
-            if p2_count == 7 {
-                p2 += 1;
-            }
+            p1 += (p1_count == 7) as u16;
+            p2 += (p2_count == 7) as u16;
 
             p1_count = 0;
             p2_count = 0;
         } else {
-            let mut keys = line.split(' ').map(|kvp| (&kvp[..3], kvp[4..].trim_end()));
+            let mut keys = line
+                .split(' ')
+                .map(|kvp| unsafe { (kvp.get_unchecked(..3), kvp.get_unchecked(4..).trim_end()) });
 
             'outer: while let Some((key, value)) = keys.next() {
-                if key != "cid" {
-                    p1_count += 1;
-                }
+                p1_count += (key != "cid") as u16;
 
                 match key {
                     "byr" => {
                         let year: u16 = parse!(value);
-
-                        if year >= 1920 && year <= 2002 {
-                            p2_count += 1;
-                        }
+                        p2_count += (year >= 1920 && year <= 2002) as u16;
                     }
                     "iyr" => {
                         let year: u16 = parse!(value);
-
-                        if year >= 2010 && year <= 2020 {
-                            p2_count += 1;
-                        }
+                        p2_count += (year >= 2010 && year <= 2020) as u16;
                     }
                     "eyr" => {
                         let year: u16 = parse!(value);
-
-                        if year >= 2020 && year <= 2030 {
-                            p2_count += 1;
-                        }
+                        p2_count += (year >= 2020 && year <= 2030) as u16;
                     }
                     "hgt" => {
                         let (num, unit) = value.split_at(value.len() - 2);
@@ -85,40 +71,26 @@ fn main() {
                             _ => continue,
                         };
 
-                        if valid {
-                            p2_count += 1;
-                        }
+                        p2_count += valid as u16;
                     }
                     "hcl" => {
                         let value = value.as_bytes();
 
-                        if value.len() != 7 || value[0] != b'#' {
+                        if value.len() != 7 || unsafe { *value.get_unchecked(0) } != b'#' {
                             continue;
                         }
 
                         for i in 1..7 {
-                            if value[i] < b'0'
-                                || value[i] > b'f'
-                                || (value[i] > b'9' && value[i] < b'a')
-                            {
+                            let byte = unsafe { *value.get_unchecked(i) };
+                            if byte < b'0' || byte > b'f' || (byte > b'9' && byte < b'a') {
                                 continue 'outer;
                             }
                         }
 
                         p2_count += 1;
                     }
-                    "ecl" => {
-                        if ecl.contains(value) {
-                            p2_count += 1;
-                        }
-                    }
-                    "pid" => {
-                        if value.len() != 9 || value.parse::<u32>().is_err() {
-                            continue;
-                        }
-
-                        p2_count += 1;
-                    }
+                    "ecl" => p2_count += ecl.contains(value) as u16,
+                    "pid" => p2_count += (value.len() == 9 && value.parse::<u32>().is_ok()) as u16,
                     _ => {}
                 }
             }

@@ -9,7 +9,7 @@ fn main() {
     let mut line = String::new();
 
     let mut p1 = 0;
-    let mut seats = [false; 1024];
+    static mut SEATS: [bool; 1024] = [false; 1024];
 
     while input.read_line(&mut line).unwrap() != 0 {
         let bytes = line.as_bytes();
@@ -19,7 +19,7 @@ fn main() {
 
         let mut i = 0;
         while i != 7 {
-            row += (bytes[i] == b'B') as usize * pow;
+            row += (unsafe { *bytes.get_unchecked(i) } == b'B') as usize * pow;
             pow /= 2;
             i += 1;
         }
@@ -28,7 +28,7 @@ fn main() {
         let mut pow = 4;
 
         while i != 10 {
-            col += (bytes[i] == b'R') as usize * pow;
+            col += (unsafe { *bytes.get_unchecked(i) } == b'R') as usize * pow;
             pow /= 2;
             i += 1;
         }
@@ -36,15 +36,15 @@ fn main() {
         let id = 8 * row + col;
 
         p1 = p1.max(id);
-        seats[id] = true;
+        unsafe { *SEATS.get_unchecked_mut(id) = true }
 
         line.clear();
     }
 
     let mut p2 = 1;
     loop {
-        if !seats[p2] {
-            if seats[p2 - 1] && seats[p2 + 1] {
+        if !unsafe { *SEATS.get_unchecked(p2) } {
+            if unsafe { *SEATS.get_unchecked(p2 - 1) && *SEATS.get_unchecked(p2 + 1) } {
                 break;
             }
             p2 += 2;

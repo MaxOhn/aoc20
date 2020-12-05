@@ -21,17 +21,15 @@ fn main() {
     let mut y = 0;
 
     while input.read_line(&mut line).unwrap() != 0 {
-        let trimmed = line.trim_end();
+        let trimmed = line.trim_end().as_bytes();
 
-        // SAFETY: There is no concurrency
         for counter in unsafe { COUNTERS.iter_mut() } {
-            counter.update(trimmed);
+            counter.count += (unsafe { *trimmed.get_unchecked(counter.x) } == b'#') as u32;
+            counter.x = (counter.x + counter.step) % trimmed.len();
         }
 
         if y % 2 == 0 {
-            if trimmed.as_bytes()[skipper_x] == b'#' {
-                skipper += 1;
-            }
+            skipper += (unsafe { *trimmed.get_unchecked(skipper_x) } == b'#') as u32;
             skipper_x = (skipper_x + 1) % trimmed.len();
         }
         y += 1;
@@ -39,8 +37,7 @@ fn main() {
         line.clear();
     }
 
-    // SAFETY: There is no concurrency
-    let p1 = unsafe { COUNTERS[1].count };
+    let p1 = unsafe { COUNTERS.get_unchecked(1).count };
     let p2 = unsafe { COUNTERS.iter() }
         .map(|counter| counter.count)
         .fold(skipper, |product, count| product * count);
@@ -57,13 +54,4 @@ struct Counter {
     step: usize,
     x: usize,
     count: u32,
-}
-
-impl Counter {
-    fn update(&mut self, line: &str) {
-        if line.as_bytes()[self.x as usize] == b'#' {
-            self.count += 1;
-        }
-        self.x = (self.x + self.step) % line.len();
-    }
 }

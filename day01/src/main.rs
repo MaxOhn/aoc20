@@ -26,14 +26,19 @@ fn main() {
     let p2 = part2(&numbers);
     println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 2.5µs
 
-    assert_eq!(p1, 326211);
-    assert_eq!(p2, 131347190);
+    assert_eq!(p1, 326_211);
+    assert_eq!(p2, 131_347_190);
 }
 
 fn part1(numbers: &[u32]) -> u32 {
     for i in 0..numbers.len() {
-        if let Ok(j) = numbers[i + 1..].binary_search(&(2020 - numbers[i])) {
-            return numbers[i] * numbers[j + i + 1];
+        let res = unsafe {
+            numbers
+                .get_unchecked(i + 1..)
+                .binary_search(&(2020 - numbers.get_unchecked(i)))
+        };
+        if let Ok(j) = res {
+            return unsafe { numbers.get_unchecked(i) * numbers.get_unchecked(j + i + 1) };
         }
     }
     unreachable!()
@@ -42,11 +47,20 @@ fn part1(numbers: &[u32]) -> u32 {
 fn part2(numbers: &[u32]) -> u32 {
     for i in 0..numbers.len() {
         for j in i + 1..numbers.len() {
-            if numbers[i] + numbers[j] > 2020 {
+            if unsafe { numbers.get_unchecked(i) + numbers.get_unchecked(j) } > 2020 {
                 break;
             }
-            if let Ok(k) = numbers[j + 1..].binary_search(&(2020 - numbers[i] - numbers[j])) {
-                return numbers[i] * numbers[j] * numbers[k + j + 1];
+            let res = unsafe {
+                numbers
+                    .get_unchecked(j + 1..)
+                    .binary_search(&(2020 - numbers.get_unchecked(i) - numbers.get_unchecked(j)))
+            };
+            if let Ok(k) = res {
+                return unsafe {
+                    numbers.get_unchecked(i)
+                        * numbers.get_unchecked(j)
+                        * numbers.get_unchecked(k + j + 1)
+                };
             }
         }
     }

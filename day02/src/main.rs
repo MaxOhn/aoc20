@@ -17,23 +17,18 @@ fn main() {
         let min = split.next().unwrap().parse().unwrap();
         let mut split = split.next().unwrap().split(' ');
         let max = split.next().unwrap().parse().unwrap();
-        let letter = split.next().unwrap().as_bytes()[0];
+        let letter = unsafe { *split.next().unwrap().as_bytes().get_unchecked(0) };
         let password = split.next().unwrap().as_bytes();
 
-        if part1(min, max, letter, password) {
-            p1 += 1;
-        }
-
-        if part2(min - 1, max - 1, letter, password) {
-            p2 += 1;
-        }
+        p1 += part1(min, max, letter, password) as u16;
+        p2 += part2(min - 1, max - 1, letter, password) as u16;
 
         line.clear();
     }
 
     println!("Part 1: {}", p1);
     println!("Part 2: {}", p2);
-    println!("Elapsed: {:?}", start.elapsed()); // 1.5ms
+    println!("Elapsed: {:?}", start.elapsed()); // 883µs
 
     assert_eq!(p1, 582);
     assert_eq!(p2, 729);
@@ -46,11 +41,7 @@ fn part1(min: usize, max: usize, letter: u8, password: &[u8]) -> bool {
 }
 
 fn part2(min: usize, max: usize, letter: u8, password: &[u8]) -> bool {
-    match (password.get(min), password.get(max)) {
-        (Some(a), Some(b)) => (*a == letter) ^ (*b == letter),
-        (Some(a), None) => *a == letter,
-        (None, _) => false,
-    }
+    unsafe { (*password.get_unchecked(min) == letter) ^ (*password.get_unchecked(max) == letter) }
 }
 
 #[cfg(feature = "rgx")]
@@ -75,16 +66,11 @@ fn main() {
 
         let min = caps[1].parse().unwrap();
         let max = caps[2].parse().unwrap();
-        let letter = caps[3].as_bytes()[0];
+        let letter = unsafe { *caps[3].as_bytes().get_unchecked(0) };
         let password = caps[4].as_bytes();
 
-        if part1(min, max, letter, password) {
-            p1 += 1;
-        }
-
-        if part2(min - 1, max - 1, letter, password) {
-            p2 += 1;
-        }
+        p1 += part1(min, max, letter, password) as u16;
+        p2 += part2(min - 1, max - 1, letter, password) as u16;
 
         line.clear();
     }
