@@ -10,6 +10,9 @@ edition = "2018"
 default = []
 rgx = ["regex", "lazy_static"]
 
+[dependencies.bytecount]
+version = "0.6"
+
 [dependencies.regex]
 optional = true
 version = "1.4"

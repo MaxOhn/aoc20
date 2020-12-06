@@ -32,7 +32,7 @@ fn main() {
             while i != bytes.len() {
                 unsafe {
                     *QUESTIONS.get_unchecked_mut((*bytes.get_unchecked(i) - b'a') as usize) += 1
-                };
+                }
                 i += 1;
             }
             group_size += 1;

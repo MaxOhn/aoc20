@@ -41,11 +41,11 @@ fn main() {
             p1_count = 0;
             p2_count = 0;
         } else {
-            let mut keys = line
+            let keys = line
                 .split(' ')
                 .map(|kvp| unsafe { (kvp.get_unchecked(..3), kvp.get_unchecked(4..).trim_end()) });
 
-            'outer: while let Some((key, value)) = keys.next() {
+            'outer: for (key, value) in keys {
                 p1_count += (key != "cid") as u16;
 
                 match key {

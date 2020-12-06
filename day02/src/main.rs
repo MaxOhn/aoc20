@@ -28,14 +28,14 @@ fn main() {
 
     println!("Part 1: {}", p1);
     println!("Part 2: {}", p2);
-    println!("Elapsed: {:?}", start.elapsed()); // 883µs
+    println!("Elapsed: {:?}", start.elapsed()); // 692µs
 
     assert_eq!(p1, 582);
     assert_eq!(p2, 729);
 }
 
 fn part1(min: usize, max: usize, letter: u8, password: &[u8]) -> bool {
-    let count = password.iter().filter(|c| **c == letter).count();
+    let count = bytecount::count(password, letter);
 
     count >= min && count <= max
 }
