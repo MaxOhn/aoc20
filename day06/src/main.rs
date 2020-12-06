@@ -1,7 +1,9 @@
-use std::io::{BufRead, BufReader};
 use std::time::Instant;
 
+#[cfg(not(feature = "functional"))]
 fn main() {
+    use std::io::{BufRead, BufReader};
+
     let start = Instant::now();
     let file = std::fs::File::open("./input").unwrap();
     let mut input = BufReader::new(file);
@@ -46,4 +48,28 @@ fn main() {
 
     assert_eq!(p1, 6742);
     assert_eq!(p2, 3447);
+}
+
+#[cfg(feature = "functional")]
+fn main() {
+    use itertools::Itertools;
+    use std::collections::HashSet;
+
+    let start = Instant::now();
+    let input = std::fs::read_to_string("./input").unwrap();
+    let p2: usize = input
+        .split("\r\n\r\n")
+        .map(|group| {
+            group
+                .split("\r\n")
+                .fold1(|mut all, next| {
+                    all.retain(|answer| next.contains(&answer));
+                    all
+                })
+                .unwrap()
+                .len()
+        })
+        .sum();
+
+    println!("Part 2: {} [{:?}]", p2, start.elapsed());
 }
