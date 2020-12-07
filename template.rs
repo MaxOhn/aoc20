@@ -12,7 +12,7 @@ fn main() {
         line.clear();
     }
 
-    println!("Setup: {:?}", start.elapsed());
+    println!("Setup: {:?}", start.elapsed()); //
 
     let start = Instant::now();
     let p1 = part1();
