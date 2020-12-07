@@ -17,13 +17,18 @@ fn main() {
 
     let mut line = String::new();
 
-    let mut names = HashMap::with_capacity(256);
-    let mut bags = HashMap::with_capacity(256);
+    let mut names = HashMap::with_capacity(594);
+    let mut bags = HashMap::with_capacity(594);
 
     while input.read_line(&mut line).unwrap() != 0 {
         let bytes = line.as_bytes();
 
         let i = bag_end_idx(bytes);
+
+        if unsafe { line.get_unchecked(i + 14..) }.starts_with("no ") {
+            line.clear();
+            continue;
+        }
 
         let outer = if let Some(bag) = names.get(unsafe { line.get_unchecked(..i) }) {
             Rc::clone(bag)
@@ -33,12 +38,6 @@ fn main() {
 
             bag
         };
-
-        if unsafe { line.get_unchecked(i + 14..) }.starts_with("no ") {
-            bags.entry(Key(outer)).or_insert_with(Vec::new);
-            line.clear();
-            continue;
-        }
 
         for inner in unsafe { line.get_unchecked(i + 14..) }.split(", ") {
             let bytes = inner.as_bytes();
@@ -73,7 +72,7 @@ fn main() {
     println!("Setup: {:?}", start.elapsed()); // 950µs
 
     let start = Instant::now();
-    let mut cache = HashMap::new();
+    let mut cache = HashMap::with_capacity(128);
 
     let p1 = bags
         .keys()
@@ -83,7 +82,7 @@ fn main() {
     println!("Part 1: {} [{:?}]", p1, start.elapsed()); // 250µs
 
     let start = Instant::now();
-    let mut cache = HashMap::new();
+    let mut cache = HashMap::with_capacity(128);
 
     let p2: usize = bags
         .get(MY_BAG)
@@ -107,7 +106,10 @@ fn contains_recursive(bag: &Rc<String>, bags: &Bags, cache: &mut CachePart1) -> 
         return false;
     }
 
-    let inner = bags.get(bag).unwrap();
+    let inner = match bags.get(bag) {
+        Some(bag) => bag,
+        None => return false,
+    };
 
     if inner.iter().any(|bag| bag.bag.as_ref() == MY_BAG) {
         cache.insert(key, true);
@@ -134,8 +136,10 @@ fn count_recursive(bag: &Rc<String>, bags: &Bags, cache: &mut CachePart2) -> usi
 
     let mut count = 1;
 
-    for BagAmount { amount, bag } in bags.get(bag).unwrap() {
-        count += *amount as usize * count_recursive(bag, bags, cache);
+    if let Some(inner) = bags.get(bag) {
+        for BagAmount { amount, bag } in inner {
+            count += *amount as usize * count_recursive(bag, bags, cache);
+        }
     }
 
     cache.insert(key, count);
