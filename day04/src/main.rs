@@ -43,25 +43,25 @@ fn main() {
         } else {
             let keys = line
                 .split(' ')
-                .map(|kvp| unsafe { (kvp.get_unchecked(..3), kvp.get_unchecked(4..).trim_end()) });
+                .map(|kvp| unsafe { (kvp.get_unchecked(..2), kvp.get_unchecked(4..).trim_end()) });
 
             'outer: for (key, value) in keys {
-                p1_count += (key != "cid") as u16;
+                p1_count += (key != "ci") as u16;
 
                 match key {
-                    "byr" => {
+                    "by" => {
                         let year: u16 = parse!(value);
                         p2_count += (year >= 1920 && year <= 2002) as u16;
                     }
-                    "iyr" => {
+                    "iy" => {
                         let year: u16 = parse!(value);
                         p2_count += (year >= 2010 && year <= 2020) as u16;
                     }
-                    "eyr" => {
+                    "ey" => {
                         let year: u16 = parse!(value);
                         p2_count += (year >= 2020 && year <= 2030) as u16;
                     }
-                    "hgt" => {
+                    "hg" => {
                         let (num, unit) = value.split_at(value.len() - 2);
                         let num: u8 = parse!(num);
 
@@ -73,7 +73,7 @@ fn main() {
 
                         p2_count += valid as u16;
                     }
-                    "hcl" => {
+                    "hc" => {
                         let value = value.as_bytes();
 
                         if value.len() != 7 || unsafe { *value.get_unchecked(0) } != b'#' {
@@ -89,8 +89,8 @@ fn main() {
 
                         p2_count += 1;
                     }
-                    "ecl" => p2_count += ecl.contains(value) as u16,
-                    "pid" => p2_count += (value.len() == 9 && value.parse::<u32>().is_ok()) as u16,
+                    "ec" => p2_count += ecl.contains(value) as u16,
+                    "pi" => p2_count += (value.len() == 9 && value.parse::<u32>().is_ok()) as u16,
                     _ => {}
                 }
             }
@@ -101,7 +101,7 @@ fn main() {
 
     println!("Part 1: {}", p1);
     println!("Part 2: {}", p2);
-    println!("Elapsed: {:?}", start.elapsed()); // 1.2ms
+    println!("Elapsed: {:?}", start.elapsed()); // 994µs
 
     assert_eq!(p1, 216);
     assert_eq!(p2, 150);
