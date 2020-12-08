@@ -43,13 +43,16 @@ fn main() {
 
     let mut p2 = 1;
     loop {
-        if !unsafe { *SEATS.get_unchecked(p2) } {
-            if unsafe { *SEATS.get_unchecked(p2 - 1) && *SEATS.get_unchecked(p2 + 1) } {
-                break;
-            }
-            p2 += 2;
-        } else {
+        if unsafe { *SEATS.get_unchecked(p2) } {
             p2 += 1;
+        } else if unsafe { *SEATS.get_unchecked(p2 + 1) } {
+            if unsafe { *SEATS.get_unchecked(p2 - 1) } {
+                break;
+            } else {
+                p2 += 2;
+            }
+        } else {
+            p2 += 3;
         }
     }
 
