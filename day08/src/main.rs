@@ -1,7 +1,7 @@
-use std::collections::HashSet;
 use std::io::{BufRead, BufReader};
-use std::str::FromStr;
 use std::time::Instant;
+
+static mut SEEN: [bool; 1024] = [false; 1024];
 
 fn main() {
     let start = Instant::now();
@@ -13,30 +13,31 @@ fn main() {
     let mut instructions: Vec<Op> = Vec::with_capacity(640);
 
     while input.read_line(&mut line).unwrap() != 0 {
-        instructions.push(line.parse().unwrap());
+        instructions.push(parse_op(&line));
         line.clear();
     }
 
-    let mut seen = HashSet::with_capacity(128);
-
-    println!("Setup: {:?}", start.elapsed()); // 176µs
+    println!("Setup: {:?}", start.elapsed()); // 143µs
 
     let start = Instant::now();
-    let p1 = part1(&instructions, &mut seen).unwrap_err();
-    println!("Part 1: {} [{:?}]", p1, start.elapsed()); // 307µs
+    let (p1_result, max) = part1(&instructions);
+    let p1 = p1_result.unwrap_err();
+    clear_seen(max);
+    println!("Part 1: {} [{:?}]", p1, start.elapsed()); // 1.7µs
 
     let start = Instant::now();
-    let p2 = part2(&mut instructions, &mut seen);
-    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 1.1ms
+    let p2 = part2(&mut instructions);
+    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 79µs
 
     assert_eq!(p1, 2014);
     assert_eq!(p2, 2251);
 }
 
-fn part1(instructions: &[Op], seen: &mut HashSet<i32>) -> Result<i32, i32> {
+fn part1(instructions: &[Op]) -> (Result<i32, i32>, usize) {
     let mut acc = 0;
     let mut pc = 0;
     let mut prev;
+    let mut max = 0;
 
     while (pc as usize) < instructions.len() {
         prev = acc;
@@ -50,15 +51,18 @@ fn part1(instructions: &[Op], seen: &mut HashSet<i32>) -> Result<i32, i32> {
             Op::Nop(_) => pc += 1,
         }
 
-        if !seen.insert(pc) {
-            return Err(prev);
+        if unsafe { *SEEN.get_unchecked(pc as usize) } {
+            return (Err(prev), max as usize);
         }
+
+        max = max.max(pc);
+        unsafe { *SEEN.get_unchecked_mut(pc as usize) = true }
     }
 
-    Ok(acc)
+    (Ok(acc), max as usize)
 }
 
-fn part2(instructions: &mut [Op], seen: &mut HashSet<i32>) -> i32 {
+fn part2(instructions: &mut [Op]) -> i32 {
     let mut i = instructions.len() - 1;
 
     loop {
@@ -76,13 +80,12 @@ fn part2(instructions: &mut [Op], seen: &mut HashSet<i32>) -> i32 {
             }
         };
 
-        seen.clear();
+        match part1(&instructions) {
+            (Ok(n), _) => return n,
+            (Err(_), max) => clear_seen(max),
+        };
 
-        match part1(&instructions, seen) {
-            Ok(n) => return n,
-            Err(_) => unsafe { *instructions.get_unchecked_mut(i) = replaced },
-        }
-
+        unsafe { *instructions.get_unchecked_mut(i) = replaced }
         i -= 1;
     }
 }
@@ -94,19 +97,24 @@ enum Op {
     Nop(i32),
 }
 
-impl FromStr for Op {
-    type Err = ();
+fn parse_op(line: &str) -> Op {
+    let n = unsafe { line.trim_end().get_unchecked(4..) }
+        .parse()
+        .unwrap();
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let n = unsafe { s.trim_end().get_unchecked(4..) }.parse().unwrap();
+    match unsafe { line.as_bytes().get_unchecked(0) } {
+        b'a' => Op::Acc(n),
+        b'j' => Op::Jmp(n),
+        b'n' => Op::Nop(n),
+        _ => unreachable!(),
+    }
+}
 
-        let op = match unsafe { s.as_bytes().get_unchecked(0) } {
-            b'a' => Self::Acc(n),
-            b'j' => Self::Jmp(n),
-            b'n' => Self::Nop(n),
-            _ => unreachable!(),
-        };
+fn clear_seen(max: usize) {
+    let mut j = 0;
 
-        Ok(op)
+    while j <= max {
+        unsafe { *SEEN.get_unchecked_mut(j) = false }
+        j += 1;
     }
 }
