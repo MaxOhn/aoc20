@@ -1,3 +1,4 @@
+use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
 
@@ -11,7 +12,8 @@ static mut COUNTERS: [Counter; 4] = [
 
 fn main() {
     let start = Instant::now();
-    let file = std::fs::File::open("./input").unwrap();
+    let file =
+        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
     let mut input = BufReader::new(file);
 
     let mut line = String::new();
@@ -20,7 +22,11 @@ fn main() {
     let mut skipper_x = 0;
     let mut y = 0;
 
-    while input.read_line(&mut line).unwrap() != 0 {
+    while input
+        .read_line(&mut line)
+        .unwrap_or_else(|_| unsafe { unreachable_unchecked() })
+        != 0
+    {
         let trimmed = line.trim_end().as_bytes();
 
         for counter in unsafe { COUNTERS.iter_mut() } {

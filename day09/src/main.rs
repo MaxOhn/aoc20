@@ -1,11 +1,14 @@
+use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
+use util::Parse;
 
 static mut PREV: [u64; 25] = [0; 25];
 
 fn main() {
     let start = Instant::now();
-    let file = std::fs::File::open("./input").unwrap();
+    let file =
+        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
     let mut input = BufReader::new(file);
 
     let mut line = String::new();
@@ -15,7 +18,7 @@ fn main() {
 
     while i < 25 {
         let _ = input.read_line(&mut line);
-        let n = line.trim_end().parse().unwrap();
+        let n = Parse::parse(line.as_bytes());
         unsafe { *PREV.get_unchecked_mut(i) = n }
         nums.push(n);
         i += 1;
@@ -26,7 +29,7 @@ fn main() {
 
     let p1 = loop {
         let _ = input.read_line(&mut line);
-        let n = line.trim_end().parse().unwrap();
+        let n = Parse::parse(line.as_bytes());
 
         if part1(n) {
             unsafe { *PREV.get_unchecked_mut(i) = n }
@@ -45,8 +48,12 @@ fn main() {
         Err(i) => {
             line.clear();
 
-            while input.read_line(&mut line).unwrap() != 0 {
-                nums.push(line.trim_end().parse().unwrap());
+            while input
+                .read_line(&mut line)
+                .unwrap_or_else(|_| unsafe { unreachable_unchecked() })
+                != 0
+            {
+                nums.push(Parse::parse(line.as_bytes()));
                 line.clear();
             }
 

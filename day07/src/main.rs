@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
 
@@ -10,7 +11,8 @@ const MY_BAG: &str = "iny go"; // always omit the first and last two characters
 
 fn main() {
     let start = Instant::now();
-    let file = std::fs::File::open("./input").unwrap();
+    let file =
+        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
     let mut input = BufReader::new(file);
 
     let mut line = String::new();
@@ -21,7 +23,11 @@ fn main() {
 
     let mut bags = HashMap::with_capacity(590);
 
-    while input.read_line(&mut line).unwrap() != 0 {
+    while input
+        .read_line(&mut line)
+        .unwrap_or_else(|_| unsafe { unreachable_unchecked() })
+        != 0
+    {
         let bytes = line.as_bytes();
         let i = bag_end_idx(bytes) - 2;
 
@@ -79,7 +85,7 @@ fn main() {
 
     let p2: u32 = bags
         .get(&0)
-        .unwrap()
+        .unwrap_or_else(|| unsafe { unreachable_unchecked() })
         .iter()
         .map(|(amount, bag)| *amount as u32 * count_recursive(*bag, &bags, &mut cache))
         .sum();

@@ -1,9 +1,11 @@
+use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
 
 fn main() {
     let start = Instant::now();
-    let file = std::fs::File::open("./input").unwrap();
+    let file =
+        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
     let mut input = BufReader::new(file);
 
     let mut line = String::new();
@@ -11,7 +13,11 @@ fn main() {
     let mut p1 = 0;
     static mut SEATS: [bool; 1024] = [false; 1024];
 
-    while input.read_line(&mut line).unwrap() != 0 {
+    while input
+        .read_line(&mut line)
+        .unwrap_or_else(|_| unsafe { unreachable_unchecked() })
+        != 0
+    {
         let bytes = line.as_bytes();
 
         let mut row = 0;

@@ -20,3 +20,6 @@ version = "1.4"
 [dependencies.lazy_static]
 optional = true
 version = "1.4"
+
+[dependencies.util]
+path = "../util"

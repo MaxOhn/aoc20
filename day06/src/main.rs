@@ -1,3 +1,4 @@
+use std::hint::unreachable_unchecked;
 use std::time::Instant;
 
 #[cfg(not(feature = "functional"))]
@@ -5,7 +6,8 @@ fn main() {
     use std::io::{BufRead, BufReader};
 
     let start = Instant::now();
-    let file = std::fs::File::open("./input").unwrap();
+    let file =
+        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
     let mut input = BufReader::new(file);
 
     let mut line = String::new();
@@ -16,7 +18,11 @@ fn main() {
     let mut p2 = 0;
     let mut group_size = 0;
 
-    while input.read_line(&mut line).unwrap() != 0 {
+    while input
+        .read_line(&mut line)
+        .unwrap_or_else(|_| unsafe { unreachable_unchecked() })
+        != 0
+    {
         let bytes = line.trim_end().as_bytes();
         let mut i = 0;
 
@@ -56,7 +62,8 @@ fn main() {
     use std::collections::HashSet;
 
     let start = Instant::now();
-    let input = std::fs::read_to_string("./input").unwrap();
+    let input =
+        std::fs::read_to_string("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
     let p2: usize = input
         .split("\r\n\r\n")
         .map(|group| {
@@ -66,7 +73,7 @@ fn main() {
                     all.retain(|answer| next.contains(&answer));
                     all
                 })
-                .unwrap()
+                .unwrap_or_else(|| unsafe { unreachable_unchecked() })
                 .len()
         })
         .sum();

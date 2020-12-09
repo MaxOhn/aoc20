@@ -1,3 +1,4 @@
+use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
 
@@ -5,14 +6,19 @@ static mut SEEN: [bool; 1024] = [false; 1024];
 
 fn main() {
     let start = Instant::now();
-    let file = std::fs::File::open("./input").unwrap();
+    let file =
+        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
     let mut input = BufReader::new(file);
 
     let mut line = String::new();
 
     let mut instructions: Vec<Op> = Vec::with_capacity(640);
 
-    while input.read_line(&mut line).unwrap() != 0 {
+    while input
+        .read_line(&mut line)
+        .unwrap_or_else(|_| unsafe { unreachable_unchecked() })
+        != 0
+    {
         instructions.push(parse_op(&line));
         line.clear();
     }
@@ -98,15 +104,13 @@ enum Op {
 }
 
 fn parse_op(line: &str) -> Op {
-    let n = unsafe { line.trim_end().get_unchecked(4..) }
-        .parse()
-        .unwrap();
+    let n = parse(unsafe { line.trim_end().as_bytes().get_unchecked(4..) });
 
     match unsafe { line.as_bytes().get_unchecked(0) } {
         b'a' => Op::Acc(n),
         b'j' => Op::Jmp(n),
         b'n' => Op::Nop(n),
-        _ => unreachable!(),
+        _ => unsafe { unreachable_unchecked() },
     }
 }
 
@@ -117,4 +121,23 @@ fn clear_seen(max: usize) {
         unsafe { *SEEN.get_unchecked_mut(j) = false }
         j += 1;
     }
+}
+
+fn parse(bytes: &[u8]) -> i32 {
+    let mut n = 0;
+    let mut i = 1;
+    let sig = (unsafe { *bytes.get_unchecked(0) } == b'+') as i32 * 2 - 1;
+
+    while i < bytes.len() {
+        let c = unsafe { *bytes.get_unchecked(i) };
+
+        if c == b'\r' {
+            return n * sig;
+        }
+
+        n = n * 10 + (unsafe { *bytes.get_unchecked(i) } & 0x0F) as i32;
+        i += 1;
+    }
+
+    n * sig
 }

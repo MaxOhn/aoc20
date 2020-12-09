@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
 
@@ -13,7 +14,8 @@ macro_rules! parse {
 
 fn main() {
     let start = Instant::now();
-    let file = std::fs::File::open("./input").unwrap();
+    let file =
+        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
     let mut input = BufReader::new(file);
 
     let mut line = String::new();
@@ -33,7 +35,11 @@ fn main() {
     ecl.insert("hzl");
     ecl.insert("oth");
 
-    while input.read_line(&mut line).unwrap() != 0 {
+    while input
+        .read_line(&mut line)
+        .unwrap_or_else(|_| unsafe { unreachable_unchecked() })
+        != 0
+    {
         if line.trim_end().is_empty() {
             p1 += (p1_count == 7) as u16;
             p2 += (p2_count == 7) as u16;

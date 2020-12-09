@@ -1,10 +1,13 @@
+use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
+use util::Parse;
 
 #[cfg(not(feature = "reg"))]
 fn main() {
     let start = Instant::now();
-    let file = std::fs::File::open("./input").unwrap();
+    let file =
+        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
     let mut input = BufReader::new(file);
 
     let mut line = String::new();
@@ -12,13 +15,39 @@ fn main() {
     let mut p1 = 0;
     let mut p2 = 0;
 
-    while input.read_line(&mut line).unwrap() != 0 {
+    while input
+        .read_line(&mut line)
+        .unwrap_or_else(|_| unsafe { unreachable_unchecked() })
+        != 0
+    {
         let mut split = line.split('-');
-        let min = split.next().unwrap().parse().unwrap();
-        let mut split = split.next().unwrap().split(' ');
-        let max = split.next().unwrap().parse().unwrap();
-        let letter = unsafe { *split.next().unwrap().as_bytes().get_unchecked(0) };
-        let password = split.next().unwrap().as_bytes();
+        let min = Parse::parse(
+            split
+                .next()
+                .unwrap_or_else(|| unsafe { unreachable_unchecked() })
+                .as_bytes(),
+        );
+        let mut split = split
+            .next()
+            .unwrap_or_else(|| unsafe { unreachable_unchecked() })
+            .split(' ');
+        let max = Parse::parse(
+            split
+                .next()
+                .unwrap_or_else(|| unsafe { unreachable_unchecked() })
+                .as_bytes(),
+        );
+        let letter = unsafe {
+            *split
+                .next()
+                .unwrap_or_else(|| unreachable_unchecked())
+                .as_bytes()
+                .get_unchecked(0)
+        };
+        let password = split
+            .next()
+            .unwrap_or_else(|| unsafe { unreachable_unchecked() })
+            .as_bytes();
 
         p1 += part1(min, max, letter, password) as u16;
         p2 += part2(min - 1, max - 1, letter, password) as u16;
