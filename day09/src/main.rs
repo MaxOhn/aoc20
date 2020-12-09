@@ -56,7 +56,7 @@ fn main() {
 
     println!("Part 1: {}", p1);
     println!("Part 2: {}", p2);
-    println!("Elapsed: {:?}", start.elapsed()); // 745µs
+    println!("Elapsed: {:?}", start.elapsed()); // 697µs
 
     assert_eq!(p1, 552_655_238);
     assert_eq!(p2, 70_672_245);
@@ -66,7 +66,7 @@ fn part1(target: u64) -> bool {
     let mut i = 0;
 
     while i < 24 {
-        let mut j = 1;
+        let mut j = i + 1;
 
         while j < 25 {
             if unsafe { PREV.get_unchecked(i) + PREV.get_unchecked(j) } == target {
@@ -109,7 +109,7 @@ fn part2_preempt(nums: &[u64], limit: u64) -> Result<u64, usize> {
             sum += unsafe { *nums.get_unchecked(j) };
             j += 1;
         } else {
-            return Ok(min_max_sum(&nums[i..j]));
+            return Ok(min_max_sum(unsafe { nums.get_unchecked(i..j) }));
         }
     }
 }
@@ -131,7 +131,7 @@ fn part2_continue(nums: &[u64], limit: u64, mut i: usize) -> u64 {
             sum += unsafe { *nums.get_unchecked(j) };
             j += 1;
         } else {
-            return min_max_sum(&nums[i..j]);
+            return min_max_sum(unsafe { nums.get_unchecked(i..j) });
         }
     }
 }
