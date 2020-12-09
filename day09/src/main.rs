@@ -10,7 +10,7 @@ fn main() {
 
     let mut line = String::new();
 
-    let mut nums = Vec::with_capacity(1024);
+    let mut nums = Vec::with_capacity(768);
     let mut i = 0;
 
     while i < 25 {
@@ -84,41 +84,55 @@ fn part1(target: u64) -> bool {
 
 fn part2_preempt(nums: &[u64], limit: u64) -> Result<u64, usize> {
     let mut i = 0;
+    let mut j = 0;
+    let mut sum = 0;
 
-    while unsafe { *nums.get_unchecked(i) } != limit {
-        let mut sum = 0;
-        let mut j = i;
-
-        while sum < limit {
-            sum += unsafe { *nums.get_unchecked(j) };
-            j += 1;
-        }
-
-        if sum == limit {
-            return Ok(min_max_sum(&nums[i..j]));
-        }
-
-        i += 1;
+    while sum < limit {
+        sum += unsafe { *nums.get_unchecked(j) };
+        j += 1;
     }
 
-    Err(i)
+    loop {
+        if sum > limit {
+            sum -= unsafe { *nums.get_unchecked(i) };
+            i += 1;
+
+            if i == j {
+                sum += unsafe { *nums.get_unchecked(j) };
+                j += 1;
+            }
+        } else if sum < limit {
+            if j == nums.len() {
+                return Err(i);
+            }
+
+            sum += unsafe { *nums.get_unchecked(j) };
+            j += 1;
+        } else {
+            return Ok(min_max_sum(&nums[i..j]));
+        }
+    }
 }
 
 fn part2_continue(nums: &[u64], limit: u64, mut i: usize) -> u64 {
-    loop {
-        let mut sum = 0;
-        let mut j = i;
+    let mut j = i;
+    let mut sum = 0;
 
-        while sum < limit {
+    while sum < limit {
+        sum += unsafe { *nums.get_unchecked(j) };
+        j += 1;
+    }
+
+    loop {
+        if sum > limit {
+            sum -= unsafe { *nums.get_unchecked(i) };
+            i += 1;
+        } else if sum < limit {
             sum += unsafe { *nums.get_unchecked(j) };
             j += 1;
-        }
-
-        if sum == limit {
+        } else {
             return min_max_sum(&nums[i..j]);
         }
-
-        i += 1;
     }
 }
 
