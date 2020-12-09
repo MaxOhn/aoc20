@@ -63,12 +63,12 @@ fn part1(instructions: &[Op]) -> (Result<i32, i32>, usize) {
 }
 
 fn part2(instructions: &mut [Op]) -> i32 {
-    let mut i = instructions.len() - 1;
+    let mut i = 0;
 
     loop {
         let replaced = loop {
             match unsafe { *instructions.get_unchecked(i) } {
-                Op::Acc(_) => i -= 1,
+                Op::Acc(_) => i += 1,
                 Op::Jmp(n) => {
                     unsafe { *instructions.get_unchecked_mut(i) = Op::Nop(n) }
                     break Op::Jmp(n);
@@ -86,7 +86,7 @@ fn part2(instructions: &mut [Op]) -> i32 {
         };
 
         unsafe { *instructions.get_unchecked_mut(i) = replaced }
-        i -= 1;
+        i += 1;
     }
 }
 
