@@ -42,10 +42,15 @@ fn main() {
 fn part1(adapters: &[u8]) -> u64 {
     static mut DIFFS: [u64; 3] = [0; 3];
 
-    for w in adapters.windows(2) {
+    let mut i = adapters.len() - 1;
+
+    while i > 0 {
         unsafe {
-            *DIFFS.get_unchecked_mut((w.get_unchecked(0) - w.get_unchecked(1)) as usize - 1) += 1
+            *DIFFS.get_unchecked_mut(
+                (adapters.get_unchecked(i - 1) - adapters.get_unchecked(i)) as usize - 1,
+            ) += 1
         }
+        i -= 1;
     }
 
     unsafe { DIFFS.get_unchecked(0) * DIFFS.get_unchecked(2) }
