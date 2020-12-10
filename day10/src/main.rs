@@ -27,28 +27,26 @@ fn main() {
     adapters.sort_unstable_by_key(|k| std::cmp::Reverse(*k));
     adapters.insert(0, unsafe { adapters.get_unchecked(0) } + 3);
 
-    println!("Setup: {:?}", start.elapsed()); //
+    println!("Setup: {:?}", start.elapsed()); // 122µs
 
     let start = Instant::now();
     let p1 = part1(&adapters);
-    println!("Part 1: {} [{:?}]", p1, start.elapsed()); //
+    println!("Part 1: {} [{:?}]", p1, start.elapsed()); // 800ns
 
     let start = Instant::now();
     let p2 = part2(&adapters);
-    println!("Part 2: {} [{:?}]", p2, start.elapsed()); //
+    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 800ns
 
     assert_eq!(p1, 2470);
     assert_eq!(p2, 1_973_822_685_184);
 }
 
 fn part1(adapters: &[u8]) -> u64 {
-    let differences = adapters.windows(2).fold([0, 0, 0], |mut diffs, w| unsafe {
-        match w.get_unchecked(0) - w.get_unchecked(1) {
-            1 => *diffs.get_unchecked_mut(0) += 1,
-            2 => *diffs.get_unchecked_mut(1) += 1,
-            3 => *diffs.get_unchecked_mut(2) += 1,
-            _ => unreachable_unchecked(),
+    let differences = adapters.windows(2).fold([0, 0, 0], |mut diffs, w| {
+        unsafe {
+            *diffs.get_unchecked_mut((w.get_unchecked(0) - w.get_unchecked(1)) as usize - 1) += 1
         }
+
         diffs
     });
 
@@ -62,11 +60,8 @@ fn part2(adapters: &[u8]) -> u64 {
     }
 
     unsafe {
-        if adapters.get_unchecked(0) - adapters.get_unchecked(2) <= 3 {
-            *POSSIBS.get_unchecked_mut(2) = 2;
-        } else {
-            *POSSIBS.get_unchecked_mut(2) = 1;
-        }
+        *POSSIBS.get_unchecked_mut(2) =
+            (adapters.get_unchecked(0) - adapters.get_unchecked(2) <= 3) as u64 + 1
     }
 
     let mut i = 2;
@@ -75,15 +70,14 @@ fn part2(adapters: &[u8]) -> u64 {
         let mut possibs = unsafe { *POSSIBS.get_unchecked((i - 1) % 3) };
 
         if unsafe { adapters.get_unchecked(i - 2) - adapters.get_unchecked(i) } <= 3 {
-            possibs += unsafe { POSSIBS.get_unchecked((i - 2) % 3) };
-
-            if unsafe { adapters.get_unchecked(i - 3) - adapters.get_unchecked(i) } <= 3 {
-                possibs += unsafe { POSSIBS.get_unchecked((i - 3) % 3) };
+            possibs += unsafe {
+                POSSIBS.get_unchecked((i - 2) % 3)
+                    + (adapters.get_unchecked(i - 3) - adapters.get_unchecked(i) <= 3) as u64
+                        * POSSIBS.get_unchecked((i - 3) % 3)
             }
         }
 
         unsafe { *POSSIBS.get_unchecked_mut(i % 3) = possibs }
-
         i += 1;
     }
 
