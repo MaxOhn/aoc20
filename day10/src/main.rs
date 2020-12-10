@@ -13,7 +13,6 @@ fn main() {
     let mut line = String::new();
 
     let mut adapters: Vec<u8> = Vec::with_capacity(128);
-    adapters.push(0);
 
     while input
         .read_line(&mut line)
@@ -26,6 +25,7 @@ fn main() {
 
     adapters.sort_unstable_by_key(|k| std::cmp::Reverse(*k));
     adapters.insert(0, unsafe { adapters.get_unchecked(0) } + 3);
+    adapters.push(0);
 
     println!("Setup: {:?}", start.elapsed()); // 122µs
 
