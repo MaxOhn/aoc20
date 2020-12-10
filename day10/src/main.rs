@@ -46,10 +46,10 @@ fn part1(adapters: &[u8]) -> u64 {
 
     while i > 0 {
         unsafe {
-            *DIFFS.get_unchecked_mut(
-                (adapters.get_unchecked(i - 1) - adapters.get_unchecked(i)) as usize - 1,
-            ) += 1
+            let idx = adapters.get_unchecked(i - 1) - adapters.get_unchecked(i);
+            *DIFFS.get_unchecked_mut(idx as usize - 1) += 1
         }
+
         i -= 1;
     }
 
@@ -69,17 +69,18 @@ fn part2(adapters: &[u8]) -> u64 {
     let mut i = 2;
 
     while i < adapters.len() {
-        let mut possibs = unsafe { *POSSIBS.get_unchecked((i - 1) % 3) };
+        unsafe {
+            let mut possibs = *POSSIBS.get_unchecked((i - 1) % 3);
 
-        if unsafe { adapters.get_unchecked(i - 2) - adapters.get_unchecked(i) } <= 3 {
-            possibs += unsafe {
-                POSSIBS.get_unchecked((i - 2) % 3)
+            if adapters.get_unchecked(i - 2) - adapters.get_unchecked(i) <= 3 {
+                possibs += POSSIBS.get_unchecked((i - 2) % 3)
                     + (adapters.get_unchecked(i - 3) - adapters.get_unchecked(i) <= 3) as u64
-                        * POSSIBS.get_unchecked((i - 3) % 3)
+                        * POSSIBS.get_unchecked(i % 3)
             }
+
+            *POSSIBS.get_unchecked_mut(i % 3) = possibs
         }
 
-        unsafe { *POSSIBS.get_unchecked_mut(i % 3) = possibs }
         i += 1;
     }
 
