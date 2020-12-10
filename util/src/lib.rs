@@ -59,11 +59,13 @@ macro_rules! impl_parse_i {
     };
 }
 
+impl_parse_u!(u8);
 impl_parse_u!(u16);
 impl_parse_u!(u32);
 impl_parse_u!(u64);
 impl_parse_u!(usize);
 
+impl_parse_i!(i8);
 impl_parse_i!(i16);
 impl_parse_i!(i32);
 impl_parse_i!(i64);
