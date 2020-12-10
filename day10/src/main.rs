@@ -2,8 +2,6 @@ use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
 
-static mut POSSIBS: [u64; 3] = [0; 3];
-
 fn main() {
     let start = Instant::now();
     let file =
@@ -42,24 +40,23 @@ fn main() {
 }
 
 fn part1(adapters: &[u8]) -> u64 {
-    let differences = adapters.windows(2).fold([0, 0, 0], |mut diffs, w| {
+    static mut DIFFS: [u64; 3] = [0; 3];
+
+    for w in adapters.windows(2) {
         unsafe {
-            *diffs.get_unchecked_mut((w.get_unchecked(0) - w.get_unchecked(1)) as usize - 1) += 1
+            *DIFFS.get_unchecked_mut((w.get_unchecked(0) - w.get_unchecked(1)) as usize - 1) += 1
         }
+    }
 
-        diffs
-    });
-
-    unsafe { differences.get_unchecked(0) * differences.get_unchecked(2) }
+    unsafe { DIFFS.get_unchecked(0) * DIFFS.get_unchecked(2) }
 }
 
 fn part2(adapters: &[u8]) -> u64 {
+    static mut POSSIBS: [u64; 3] = [0; 3];
+
     unsafe {
         *POSSIBS.get_unchecked_mut(0) = 1;
         *POSSIBS.get_unchecked_mut(1) = 1;
-    }
-
-    unsafe {
         *POSSIBS.get_unchecked_mut(2) =
             (adapters.get_unchecked(0) - adapters.get_unchecked(2) <= 3) as u64 + 1
     }
