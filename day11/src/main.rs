@@ -24,8 +24,6 @@ struct Seats {
 fn main() {
     let seats = parse_seats();
 
-    println!("Seats: {}x{}", seats.width, seats.len() / seats.width);
-
     let p1 = part1(seats.clone());
     let p2 = part2(seats.clone());
     let p2_old = part2_old(seats);
@@ -111,8 +109,8 @@ fn part1(mut seats: Seats) -> usize {
             // Right
             let j = i + 1;
             if j < seats.width {
-                count += (unsafe { *seats.get_unchecked(j) } == OCC) as u8;
-                count += (unsafe { *seats.get_unchecked(j + seats.width) } == OCC) as u8;
+                count += (unsafe { *seats.get_unchecked(j) } == OCC) as u8
+                    + (unsafe { *seats.get_unchecked(j + seats.width) } == OCC) as u8;
             }
 
             // Left
@@ -137,8 +135,10 @@ fn part1(mut seats: Seats) -> usize {
             i += 1;
         }
 
-        // Other rows
-        while i < seats.len() {
+        let last = seats.len() - seats.width;
+
+        // Middle rows
+        while i < last {
             let seat = unsafe { *seats.get_unchecked(i) };
 
             if seat == FLOOR || stationary.contains(&i) {
@@ -157,8 +157,8 @@ fn part1(mut seats: Seats) -> usize {
             // Right
             let j = i + 1;
             if j % seats.width > 0 {
-                count += (unsafe { *seats.get_unchecked(j) } == OCC) as u8;
-                count += (unsafe { *seats.get_unchecked(j + seats.width) } == OCC) as u8;
+                count += (unsafe { *seats.get_unchecked(j) } == OCC) as u8
+                    + (unsafe { *seats.get_unchecked(j + seats.width) } == OCC) as u8;
 
                 if flipped.contains(&(j - seats.width)) {
                     count += (unsafe { *seats.get_unchecked(j - seats.width) == EMP }) as u8;
@@ -195,6 +195,61 @@ fn part1(mut seats: Seats) -> usize {
             i += 1;
         }
 
+        // Last row
+        while i < seats.len() {
+            let seat = unsafe { *seats.get_unchecked(i) };
+
+            if seat == FLOOR || stationary.contains(&i) {
+                i += 1;
+                continue;
+            }
+
+            let mut count = 0;
+
+            if flipped.contains(&(i - seats.width)) {
+                count += (unsafe { *seats.get_unchecked(i - seats.width) == EMP }) as u8;
+            } else {
+                count += (unsafe { *seats.get_unchecked(i - seats.width) == OCC }) as u8;
+            }
+
+            // Right
+            let j = i + 1;
+            if j < seats.len() {
+                count += (unsafe { *seats.get_unchecked(j) } == OCC) as u8;
+
+                if flipped.contains(&(j - seats.width)) {
+                    count += (unsafe { *seats.get_unchecked(j - seats.width) == EMP }) as u8;
+                } else {
+                    count += (unsafe { *seats.get_unchecked(j - seats.width) == OCC }) as u8;
+                }
+            }
+
+            // Left
+            if i % seats.width > 0 {
+                let j = i - 1;
+
+                if flipped.contains(&(j - seats.width)) {
+                    count += (unsafe { *seats.get_unchecked(j - seats.width) == EMP }) as u8;
+                } else {
+                    count += (unsafe { *seats.get_unchecked(j - seats.width) == OCC }) as u8;
+                }
+
+                if flipped.contains(&j) {
+                    count += (unsafe { *seats.get_unchecked(j) == EMP }) as u8;
+                } else {
+                    count += (unsafe { *seats.get_unchecked(j) == OCC }) as u8;
+                }
+            }
+
+            if (seat == EMP && count == 0) || (seat == OCC && count >= 4) {
+                unsafe { *seats.get_unchecked_mut(i) = !seat };
+                flipped.insert(i);
+            } else {
+                stationary.insert(i);
+            }
+
+            i += 1;
+        }
         if flipped.is_empty() {
             let count = seats
                 .iter()
