@@ -24,11 +24,15 @@ struct Seats {
 fn main() {
     let seats = parse_seats();
 
+    println!("Seats: {}x{}", seats.width, seats.len() / seats.width);
+
     let p1 = part1(seats.clone());
-    let p2 = part2(seats);
+    let p2 = part2(seats.clone());
+    let p2_old = part2_old(seats);
 
     assert_eq!(p1, 2166);
     assert_eq!(p2, 1955);
+    assert_eq!(p2_old, 1955);
 }
 
 fn parse_seats() -> Seats {
@@ -91,9 +95,6 @@ fn part1(mut seats: Seats) -> usize {
     let mut flipped = HashSet::with_capacity_and_hasher(4096, NumHasherBuilder);
     let mut stationary = HashSet::with_capacity_and_hasher(seats.len(), NumHasherBuilder);
 
-    let emp_check = |count: u8| count == 0;
-    let occ_check = |count: u8| count >= 4;
-
     loop {
         // First row
         let mut i = 0;
@@ -126,7 +127,7 @@ fn part1(mut seats: Seats) -> usize {
                 count += (unsafe { *seats.get_unchecked(j + seats.width) } == OCC) as u8;
             }
 
-            if (seat == EMP && emp_check(count)) || (seat == OCC && occ_check(count)) {
+            if (seat == EMP && count == 0) || (seat == OCC && count >= 4) {
                 unsafe { *seats.get_unchecked_mut(i) = !seat };
                 flipped.insert(i);
             } else {
@@ -184,7 +185,7 @@ fn part1(mut seats: Seats) -> usize {
                 }
             }
 
-            if (seat == EMP && emp_check(count)) || (seat == OCC && occ_check(count)) {
+            if (seat == EMP && count == 0) || (seat == OCC && count >= 4) {
                 unsafe { *seats.get_unchecked_mut(i) = !seat };
                 flipped.insert(i);
             } else {
@@ -208,7 +209,101 @@ fn part1(mut seats: Seats) -> usize {
     }
 }
 
+static OFFSETS: [(isize, isize); 8] = [
+    (-1, -1),
+    (0, -1),
+    (1, -1),
+    (-1, 0),
+    (1, 0),
+    (-1, 1),
+    (0, 1),
+    (1, 1),
+];
+
 fn part2(mut seats: Seats) -> usize {
+    let start = Instant::now();
+
+    let width = seats.width as isize;
+    let height = seats.len() as isize / width;
+
+    let mut alt = seats.clone();
+    let mut stationary = HashSet::with_capacity_and_hasher(4096, NumHasherBuilder);
+
+    loop {
+        let mut i = 0;
+
+        while i < seats.len() {
+            if stationary.contains(&i) {
+                unsafe { *alt.get_unchecked_mut(i) = *seats.get_unchecked(i) }
+                i += 1;
+                continue;
+            }
+
+            let seat = unsafe { *seats.get_unchecked(i) };
+
+            if seat == FLOOR {
+                stationary.insert(i);
+                i += 1;
+                continue;
+            }
+
+            let directions = OFFSETS.iter().map(|(dx, dy)| {
+                let mut cx = (i % seats.width) as isize;
+                let mut cy = (i / seats.width) as isize;
+                std::iter::from_fn(move || {
+                    cx += dx;
+                    cy += dy;
+
+                    if 0 <= cx && cx < width && 0 <= cy && cy < height {
+                        Some((cx + width * cy) as usize)
+                    } else {
+                        None
+                    }
+                })
+            });
+
+            let mut count = 0;
+
+            'outer: for direction_iter in directions {
+                for j in direction_iter {
+                    match unsafe { *seats.get_unchecked(j) } {
+                        Seat::Empty => continue 'outer,
+                        Seat::Occupied => {
+                            count += 1;
+                            continue 'outer;
+                        }
+                        Seat::Floor => (),
+                    }
+                }
+            }
+
+            if seat == EMP && count == 0 {
+                unsafe { *alt.get_unchecked_mut(i) = OCC }
+            } else if seat == OCC && count >= 5 {
+                unsafe { *alt.get_unchecked_mut(i) = EMP }
+            } else {
+                unsafe { *alt.get_unchecked_mut(i) = *seats.get_unchecked(i) }
+                stationary.insert(i);
+            }
+
+            i += 1;
+        }
+
+        if stationary.len() == seats.len() {
+            let count = seats
+                .iter()
+                .filter(|seats| **seats == Seat::Occupied)
+                .count();
+
+            println!("Part 2: {} [{:?}]", count, start.elapsed()); //
+            return count;
+        }
+
+        std::mem::swap(&mut seats, &mut alt);
+    }
+}
+
+fn part2_old(mut seats: Seats) -> usize {
     let start = Instant::now();
     let mut flipped = HashSet::with_capacity_and_hasher(4096, NumHasherBuilder);
     let mut stationary = HashSet::with_capacity_and_hasher(seats.len(), NumHasherBuilder);
@@ -287,7 +382,7 @@ fn part2(mut seats: Seats) -> usize {
                 .filter(|seats| **seats == Seat::Occupied)
                 .count();
 
-            println!("Part 2: {} [{:?}]", count, start.elapsed()); // 24ms
+            println!("Part 2 old: {} [{:?}]", count, start.elapsed()); // 24ms
             return count;
         }
 
