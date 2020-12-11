@@ -295,6 +295,8 @@ fn part2(mut seats: Seats) -> usize {
     }
 }
 
+// ---- Part 2 helpers -----
+
 #[inline(always)]
 fn right(seats: &Seats, i: usize) -> u8 {
     let mut j = i + 1;
@@ -443,7 +445,7 @@ fn up_right(seats: &Seats, flipped: &HashSet<usize, NumHasherBuilder>, i: usize)
 
             j = j + 1 - seats.width;
         } else {
-            return if flipped.contains(&(j as usize)) {
+            return if flipped.contains(&j) {
                 (seat == EMP) as u8
             } else {
                 (seat == OCC) as u8
@@ -466,7 +468,7 @@ fn up_left(seats: &Seats, flipped: &HashSet<usize, NumHasherBuilder>, i: usize) 
 
             j = j - 1 - seats.width;
         } else {
-            return if flipped.contains(&(j as usize)) {
+            return if flipped.contains(&j) {
                 (seat == EMP) as u8
             } else {
                 (seat == OCC) as u8
@@ -474,6 +476,8 @@ fn up_left(seats: &Seats, flipped: &HashSet<usize, NumHasherBuilder>, i: usize) 
         }
     }
 }
+
+// ----- Custom hasher -----
 
 struct NumHasherBuilder;
 
@@ -497,6 +501,8 @@ impl Hasher for NumHasher {
         self.0 = u64::from_le_bytes(arr.unwrap());
     }
 }
+
+// ----- Impls -----
 
 impl Not for Seat {
     type Output = Self;
