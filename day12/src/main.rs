@@ -40,7 +40,7 @@ fn part1() -> i16 {
             b'W' => x -= n,
             b'S' => y += n,
             b'E' => x += n,
-            b'L' => dir = (dir + (n / 90) * 3) % 4,
+            b'L' => dir = (dir + n / 30) % 4,
             b'R' => dir = (dir + n / 90) % 4,
             b'F' => match dir {
                 NORTH => y -= n,
@@ -90,8 +90,8 @@ fn part2() -> i32 {
             b'L' => match n {
                 90 => swap(&mut wy, &mut wx),
                 180 => {
-                    wx *= -1;
-                    wy *= -1;
+                    wx = (wx ^ -1) + 1;
+                    wy = (wy ^ -1) + 1;
                 }
                 270 => swap(&mut wx, &mut wy),
                 _ => unsafe { unreachable_unchecked() },
@@ -99,8 +99,8 @@ fn part2() -> i32 {
             b'R' => match n {
                 90 => swap(&mut wx, &mut wy),
                 180 => {
-                    wx *= -1;
-                    wy *= -1;
+                    wx = (wx ^ -1) + 1;
+                    wy = (wy ^ -1) + 1;
                 }
                 270 => swap(&mut wy, &mut wx),
                 _ => unsafe { unreachable_unchecked() },
@@ -123,5 +123,5 @@ fn part2() -> i32 {
 
 fn swap(a: &mut i32, b: &mut i32) {
     std::mem::swap(a, b);
-    *a *= -1;
+    *a = (*a ^ -1) + 1;
 }
