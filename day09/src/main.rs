@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
@@ -100,23 +101,25 @@ fn part2_preempt(nums: &[u64], limit: u64) -> Result<u64, usize> {
     }
 
     loop {
-        if sum > limit {
-            sum -= unsafe { *nums.get_unchecked(i) };
-            i += 1;
+        match sum.cmp(&limit) {
+            Ordering::Less => {
+                if j == nums.len() {
+                    return Err(i);
+                }
 
-            if i == j {
                 sum += unsafe { *nums.get_unchecked(j) };
                 j += 1;
             }
-        } else if sum < limit {
-            if j == nums.len() {
-                return Err(i);
-            }
+            Ordering::Greater => {
+                sum -= unsafe { *nums.get_unchecked(i) };
+                i += 1;
 
-            sum += unsafe { *nums.get_unchecked(j) };
-            j += 1;
-        } else {
-            return Ok(min_max_sum(unsafe { nums.get_unchecked(i..j) }));
+                if i == j {
+                    sum += unsafe { *nums.get_unchecked(j) };
+                    j += 1;
+                }
+            }
+            Ordering::Equal => return Ok(min_max_sum(unsafe { nums.get_unchecked(i..j) })),
         }
     }
 }
@@ -131,14 +134,16 @@ fn part2_continue(nums: &[u64], limit: u64, mut i: usize) -> u64 {
     }
 
     loop {
-        if sum > limit {
-            sum -= unsafe { *nums.get_unchecked(i) };
-            i += 1;
-        } else if sum < limit {
-            sum += unsafe { *nums.get_unchecked(j) };
-            j += 1;
-        } else {
-            return min_max_sum(unsafe { nums.get_unchecked(i..j) });
+        match sum.cmp(&limit) {
+            Ordering::Less => {
+                sum += unsafe { *nums.get_unchecked(j) };
+                j += 1;
+            }
+            Ordering::Greater => {
+                sum -= unsafe { *nums.get_unchecked(i) };
+                i += 1;
+            }
+            Ordering::Equal => return min_max_sum(unsafe { nums.get_unchecked(i..j) }),
         }
     }
 }
