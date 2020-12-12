@@ -33,9 +33,9 @@ fn part1() -> i16 {
         != 0
     {
         let bytes = line.as_bytes();
-        let n: i16 = util::Parse::parse(&bytes[1..]);
+        let n: i16 = util::Parse::parse(unsafe { bytes.get_unchecked(1..) });
 
-        match bytes[0] {
+        match unsafe { *bytes.get_unchecked(0) } {
             b'N' => y -= n,
             b'W' => x -= n,
             b'S' => y += n,
@@ -80,9 +80,9 @@ fn part2() -> i32 {
         != 0
     {
         let bytes = line.as_bytes();
-        let n: i32 = util::Parse::parse(&bytes[1..]);
+        let n: i32 = util::Parse::parse(unsafe { bytes.get_unchecked(1..) });
 
-        match bytes[0] {
+        match unsafe { *bytes.get_unchecked(0) } {
             b'N' => wy -= n,
             b'W' => wx -= n,
             b'S' => wy += n,
