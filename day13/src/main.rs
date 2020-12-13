@@ -33,11 +33,11 @@ fn part1() -> u32 {
     while i < bytes.len() {
         let byte = unsafe { *bytes.get_unchecked(i) };
         if byte == b',' {
-            let candidate = earliest + n - earliest % n;
+            let candidate = n - earliest % n;
 
             if candidate < min {
                 min = candidate;
-                p1 = (candidate - earliest) * n;
+                p1 = candidate * n;
             }
 
             n = 0;
@@ -52,14 +52,14 @@ fn part1() -> u32 {
     }
 
     if n > 0 {
-        let candidate = earliest + n - earliest % n;
+        let candidate = n - earliest % n;
 
         if candidate < min {
-            p1 = (candidate - earliest) * n;
+            p1 = candidate * n;
         }
     }
 
-    println!("Part 1: {} [{:?}]", p1, start.elapsed()); //
+    println!("Part 1: {} [{:?}]", p1, start.elapsed()); // 82µs
 
     p1
 }
@@ -130,7 +130,7 @@ fn part2() -> u64 {
         step = next_step;
     }
 
-    println!("Part 2: {} [{:?}]", t, start.elapsed()); //
+    println!("Part 2: {} [{:?}]", t, start.elapsed()); // 56µs
 
     t
 }

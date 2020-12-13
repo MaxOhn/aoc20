@@ -56,7 +56,7 @@ fn part1() -> i16 {
     }
 
     let p1 = x.abs() + y.abs();
-    println!("Part 1: {} [{:?}]", p1, start.elapsed()); //
+    println!("Part 1: {} [{:?}]", p1, start.elapsed()); // 128µs
 
     p1
 }
@@ -90,8 +90,8 @@ fn part2() -> i32 {
             b'L' => match n {
                 90 => swap(&mut wy, &mut wx),
                 180 => {
-                    wx = (wx ^ -1) + 1;
-                    wy = (wy ^ -1) + 1;
+                    wx *= -1;
+                    wy *= -1;
                 }
                 270 => swap(&mut wx, &mut wy),
                 _ => unsafe { unreachable_unchecked() },
@@ -99,8 +99,8 @@ fn part2() -> i32 {
             b'R' => match n {
                 90 => swap(&mut wx, &mut wy),
                 180 => {
-                    wx = (wx ^ -1) + 1;
-                    wy = (wy ^ -1) + 1;
+                    wx *= -1;
+                    wy *= -1;
                 }
                 270 => swap(&mut wy, &mut wx),
                 _ => unsafe { unreachable_unchecked() },
@@ -116,12 +116,12 @@ fn part2() -> i32 {
     }
 
     let p2 = x.abs() + y.abs();
-    println!("Part 2: {} [{:?}]", p2, start.elapsed()); //
+    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 145µs
 
     p2
 }
 
 fn swap(a: &mut i32, b: &mut i32) {
     std::mem::swap(a, b);
-    *a = (*a ^ -1) + 1;
+    *a *= -1;
 }
