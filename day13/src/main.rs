@@ -28,10 +28,9 @@ fn part1() -> u32 {
     let mut min = u32::MAX;
     let mut p1 = 0;
     let mut i = 0;
-    let j = bytes.len() - 1;
     let mut n = 0;
 
-    while i < j {
+    while i < bytes.len() {
         let byte = unsafe { *bytes.get_unchecked(i) };
         if byte == b',' {
             let candidate = earliest + n - earliest % n;
@@ -81,10 +80,9 @@ fn part2() -> u64 {
     let mut ids = Vec::with_capacity(10);
     let mut idx = 0;
     let mut i = 0;
-    let j = bytes.len() - 1;
     let mut n = 0;
 
-    while i < j {
+    while i < bytes.len() {
         let byte = unsafe { *bytes.get_unchecked(i) };
         if byte == b',' {
             ids.push((n, idx));
