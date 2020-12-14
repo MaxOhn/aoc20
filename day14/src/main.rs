@@ -53,7 +53,7 @@ fn part1() -> u64 {
                 while j < 36 {
                     match unsafe { *mask.get_unchecked(j) } {
                         b'X' => {}
-                        b'0' => val &= u64::MAX - (1 << (35 - j)),
+                        b'0' => val &= !(1 << (35 - j)),
                         b'1' => val |= 1 << (35 - j),
                         _ => unsafe { unreachable_unchecked() },
                     }
@@ -88,7 +88,7 @@ fn part2() -> u64 {
     let mut mask_zeroed = 0;
     let mut mask_ones = 0;
     let mut xs = Vec::with_capacity(8);
-    let mut mem = HashMap::with_capacity_and_hasher(131_072, NumHasherBuilder);
+    let mut mem = HashMap::with_capacity_and_hasher(100_000, NumHasherBuilder);
 
     while input
         .read_line(&mut line)
@@ -122,8 +122,7 @@ fn part2() -> u64 {
                     let mut j = 0;
 
                     while j < xs.len() {
-                        a += ((i >> j) & 1) as usize * (1_usize << unsafe { *xs.get_unchecked(j) });
-
+                        a |= ((i >> j) & 1 as usize) << unsafe { *xs.get_unchecked(j) };
                         j += 1;
                     }
 
@@ -134,10 +133,10 @@ fn part2() -> u64 {
                 xs.clear();
                 mask_zeroed = 0;
                 mask_ones = 0;
-                let mut i = 0;
+                let mut i = 7;
 
-                while i < 36 {
-                    match unsafe { *bytes.get_unchecked(i + 7) } {
+                while i < 43 {
+                    match unsafe { *bytes.get_unchecked(i) } {
                         b'0' => {
                             mask_zeroed <<= 1;
                             mask_ones = (mask_ones << 1) + 1;
@@ -149,7 +148,7 @@ fn part2() -> u64 {
                         b'X' => {
                             mask_zeroed <<= 1;
                             mask_ones <<= 1;
-                            xs.push(35 - i);
+                            xs.push(42 - i);
                         }
                         _ => unsafe { unreachable_unchecked() },
                     }
@@ -227,7 +226,7 @@ fn part2_old() -> u64 {
                     i += 1;
                 }
             }
-            _ => unreachable!(),
+            _ => unsafe { unreachable_unchecked() },
         }
 
         line.clear();
