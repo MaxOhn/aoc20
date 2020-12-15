@@ -1,12 +1,11 @@
 use std::collections::HashSet;
-use std::convert::TryFrom;
 use std::fmt;
-use std::hash::{BuildHasher, Hasher};
 use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::iter::FromIterator;
 use std::ops::{Deref, DerefMut, Not};
 use std::time::Instant;
+use util::NumHasherBuilder;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 enum Seat {
@@ -26,11 +25,9 @@ fn main() {
 
     let p1 = part1(seats.clone());
     let p2 = part2(seats.clone());
-    let p2_old = part2_old(seats);
 
     assert_eq!(p1, 2166);
     assert_eq!(p2, 1955);
-    assert_eq!(p2_old, 1955);
 }
 
 fn parse_seats() -> Seats {
@@ -358,6 +355,7 @@ fn part2(mut seats: Seats) -> usize {
     }
 }
 
+#[allow(dead_code)]
 fn part2_old(mut seats: Seats) -> usize {
     let start = Instant::now();
     let mut flipped = HashSet::with_capacity_and_hasher(4096, NumHasherBuilder);
@@ -624,31 +622,6 @@ fn up_left(seats: &Seats, flipped: &HashSet<usize, NumHasherBuilder>, i: usize) 
                 (seat == OCC) as u8
             };
         }
-    }
-}
-
-// ----- Custom hasher -----
-
-struct NumHasherBuilder;
-
-impl BuildHasher for NumHasherBuilder {
-    type Hasher = NumHasher;
-
-    fn build_hasher(&self) -> Self::Hasher {
-        NumHasher(0)
-    }
-}
-
-struct NumHasher(u64);
-
-impl Hasher for NumHasher {
-    fn finish(&self) -> u64 {
-        self.0
-    }
-
-    fn write(&mut self, bytes: &[u8]) {
-        let arr = <[u8; 8] as TryFrom<_>>::try_from(bytes);
-        self.0 = u64::from_le_bytes(arr.unwrap());
     }
 }
 

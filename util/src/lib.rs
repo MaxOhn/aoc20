@@ -71,6 +71,30 @@ impl_parse_i!(i32);
 impl_parse_i!(i64);
 impl_parse_i!(isize);
 
+// ----- Custom hasher -----
+
+pub struct NumHasherBuilder;
+
+impl std::hash::BuildHasher for NumHasherBuilder {
+    type Hasher = NumHasher;
+
+    fn build_hasher(&self) -> Self::Hasher {
+        NumHasher(0)
+    }
+}
+
+pub struct NumHasher(u64);
+
+impl std::hash::Hasher for NumHasher {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+
+    fn write(&mut self, bytes: &[u8]) {
+        self.0 = unsafe { *(bytes.as_ptr() as *const u64) };
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

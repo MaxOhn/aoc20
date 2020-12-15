@@ -2,8 +2,9 @@ use std::collections::HashMap;
 use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
+use util::NumHasherBuilder;
 
-type Bags = HashMap<u16, Vec<(u8, u16)>>;
+type Bags = HashMap<u16, Vec<(u8, u16)>, NumHasherBuilder>;
 type CachePart1 = HashMap<u16, bool>;
 type CachePart2 = HashMap<u16, u32>;
 
@@ -21,7 +22,7 @@ fn main() {
     names.insert(MY_BAG.to_owned(), 0);
     let mut id = 1;
 
-    let mut bags = HashMap::with_capacity(590);
+    let mut bags = HashMap::with_capacity_and_hasher(590, NumHasherBuilder);
 
     while input
         .read_line(&mut line)
@@ -90,7 +91,7 @@ fn main() {
         .map(|(amount, bag)| *amount as u32 * count_recursive(*bag, &bags, &mut cache))
         .sum();
 
-    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 6µs
+    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 4µs
 
     assert_eq!(p1, 161);
     assert_eq!(p2, 30_899);

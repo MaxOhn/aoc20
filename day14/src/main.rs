@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use std::hash::{BuildHasher, Hasher};
 use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
+use util::{NumHasherBuilder, Parse};
 
 fn main() {
     let p1 = part1();
@@ -47,7 +47,7 @@ fn part1() -> u64 {
                 }
 
                 i += 4;
-                let mut val: u64 = util::Parse::parse(unsafe { bytes.get_unchecked(i..) });
+                let mut val: u64 = Parse::parse(unsafe { bytes.get_unchecked(i..) });
                 let mut j = 0;
 
                 while j < 36 {
@@ -113,7 +113,7 @@ fn part2() -> u64 {
                     i += 1;
                 }
 
-                let val: u64 = util::Parse::parse(unsafe { bytes.get_unchecked(i + 4..) });
+                let val: u64 = Parse::parse(unsafe { bytes.get_unchecked(i + 4..) });
 
                 adr = (adr | mask_zeroed) & mask_ones;
 
@@ -277,28 +277,4 @@ fn nums<'a>(mut num: usize, mask: &'a [u8], xs: &'a [usize]) -> impl Iterator<It
             Some(n)
         })
         .chain(std::iter::once(num))
-}
-
-// ----- Custom hasher -----
-
-struct NumHasherBuilder;
-
-impl BuildHasher for NumHasherBuilder {
-    type Hasher = NumHasher;
-
-    fn build_hasher(&self) -> Self::Hasher {
-        NumHasher(0)
-    }
-}
-
-struct NumHasher(u64);
-
-impl Hasher for NumHasher {
-    fn finish(&self) -> u64 {
-        self.0
-    }
-
-    fn write(&mut self, bytes: &[u8]) {
-        self.0 = unsafe { *(bytes.as_ptr() as *const u64) };
-    }
 }
