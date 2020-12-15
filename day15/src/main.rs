@@ -47,51 +47,9 @@ fn run(size: usize) -> u32 {
     }
 
     while idx < end {
-        let mut prev = idx;
-        std::mem::swap(&mut prev, unsafe { nums.get_unchecked_mut(last as usize) });
-        last = idx.saturating_sub(prev);
-        idx += 1;
-    }
-
-    last
-}
-
-#[allow(dead_code)]
-fn run_old(size: usize) -> usize {
-    let file =
-        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
-    let mut input = BufReader::new(file);
-
-    let mut line = String::new();
-    let _ = input.read_line(&mut line);
-    let bytes = line.as_bytes();
-
-    let mut nums = vec![None; size];
-
-    let mut i = 0;
-    let mut idx = 0;
-    let mut last = 0;
-    let end = size - 1;
-
-    while i < bytes.len() {
-        let byte = unsafe { *bytes.get_unchecked(i) };
-        if byte == b',' {
-            unsafe { *nums.get_unchecked_mut(last) = Some(idx) }
-            last = 0;
-            idx += 1;
-        } else if byte == b'\n' {
-            break;
-        } else {
-            last = last * 10 + (byte & 0x0F) as usize;
-        }
-
-        i += 1;
-    }
-
-    while idx < end {
-        let last_idx = unsafe { *nums.get_unchecked(last) };
-        unsafe { *nums.get_unchecked_mut(last) = Some(idx) }
-        last = last_idx.map_or(0, |n| idx - n);
+        let last_idx = unsafe { *nums.get_unchecked(last as usize) };
+        unsafe { *nums.get_unchecked_mut(last as usize) = idx }
+        last = idx.saturating_sub(last_idx);
         idx += 1;
     }
 
