@@ -1,14 +1,13 @@
 #![allow(clippy::derive_hash_xor_eq)]
 
-use std::collections::HashSet;
+use hashbrown::HashSet;
 use std::hash::{Hash, Hasher};
 use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
-use std::ops::Add;
 use std::time::Instant;
 
-#[derive(Copy, Clone, Eq, PartialEq)]
-struct Pos3 {
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct Pos3 {
     x: i8,
     y: i8,
     z: i8,
@@ -18,30 +17,22 @@ impl Pos3 {
     fn new(x: i8, y: i8, z: i8) -> Self {
         Self { x, y, z }
     }
-}
 
-impl Add<(i8, i8, i8)> for Pos3 {
-    type Output = Self;
-
-    fn add(self, (x, y, z): (i8, i8, i8)) -> Self::Output {
-        Self {
-            x: self.x + x,
-            y: self.y + y,
-            z: self.z + z,
-        }
+    fn neighbors(self) -> Pos3Neighbors {
+        Pos3Neighbors::new(self)
     }
 }
 
 impl Hash for Pos3 {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        let n = ((self.x as i32) << 16) + ((self.y as i32) << 8) + self.z as i32;
+        let n = ((self.x as u32) << 16) + ((self.y as u32) << 8) + self.z as u32;
 
         n.hash(state);
     }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]
-struct Pos4 {
+pub struct Pos4 {
     w: i8,
     x: i8,
     y: i8,
@@ -52,27 +43,18 @@ impl Pos4 {
     fn new(w: i8, x: i8, y: i8, z: i8) -> Self {
         Self { w, x, y, z }
     }
-}
 
-impl Add<(i8, i8, i8, i8)> for Pos4 {
-    type Output = Self;
-
-    fn add(self, (w, x, y, z): (i8, i8, i8, i8)) -> Self::Output {
-        Self {
-            w: self.w + w,
-            x: self.x + x,
-            y: self.y + y,
-            z: self.z + z,
-        }
+    fn neighbors(self) -> Pos4Neighbors {
+        Pos4Neighbors::new(self)
     }
 }
 
 impl Hash for Pos4 {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        let n = ((self.w as i64) << 24)
-            + ((self.x as i64) << 16)
-            + ((self.y as i64) << 8)
-            + self.z as i64;
+        let n = ((self.w as u32) << 24)
+            + ((self.x as u32) << 16)
+            + ((self.y as u32) << 8)
+            + self.z as u32;
 
         n.hash(state);
     }
@@ -119,31 +101,15 @@ fn part1() -> usize {
 
     for _ in 0..6 {
         for coord in layers.iter().copied() {
-            for dx in -1..=1 {
-                for dy in -1..=1 {
-                    for dz in -1..=1 {
-                        let coord = coord + (dx, dy, dz);
+            for candidate in coord.neighbors().filter(|&c| checked.insert(c)) {
+                let mut n = -(layers.contains(&candidate) as i16);
 
-                        if !checked.insert(coord) {
-                            continue;
-                        }
+                for neighbor in candidate.neighbors() {
+                    n += layers.contains(&neighbor) as i16;
+                }
 
-                        let mut n = 0;
-
-                        for dx in -1..=1 {
-                            for dy in -1..=1 {
-                                for dz in -1..=1 {
-                                    n += layers.contains(&(coord + (dx, dy, dz))) as u16;
-                                }
-                            }
-                        }
-
-                        n -= layers.contains(&coord) as u16;
-
-                        if n == 3 || (n == 2 && layers.contains(&coord)) {
-                            next_layers.insert(coord);
-                        }
-                    }
+                if n == 3 || (n == 2 && layers.contains(&candidate)) {
+                    next_layers.insert(candidate);
                 }
             }
         }
@@ -153,7 +119,7 @@ fn part1() -> usize {
         checked.clear();
     }
 
-    println!("Part 1: {} [{:?}]", layers.len(), start.elapsed()); // 5ms
+    println!("Part 1: {} [{:?}]", layers.len(), start.elapsed()); // 2.8ms
 
     layers.len()
 }
@@ -191,36 +157,15 @@ fn part2() -> usize {
 
     for _ in 0..6 {
         for coord in layers.iter().copied() {
-            for dw in -1..=1 {
-                for dx in -1..=1 {
-                    for dy in -1..=1 {
-                        for dz in -1..=1 {
-                            let coord = coord + (dw, dx, dy, dz);
+            for candidate in coord.neighbors().filter(|&c| checked.insert(c)) {
+                let mut n = -(layers.contains(&candidate) as i16);
 
-                            if !checked.insert(coord) {
-                                continue;
-                            }
+                for neighbor in candidate.neighbors() {
+                    n += layers.contains(&neighbor) as i16;
+                }
 
-                            let mut n = 0;
-
-                            for dw in -1..=1 {
-                                for dx in -1..=1 {
-                                    for dy in -1..=1 {
-                                        for dz in -1..=1 {
-                                            n +=
-                                                layers.contains(&(coord + (dw, dx, dy, dz))) as u16;
-                                        }
-                                    }
-                                }
-                            }
-
-                            n -= layers.contains(&coord) as u16;
-
-                            if n == 3 || (n == 2 && layers.contains(&coord)) {
-                                next_layers.insert(coord);
-                            }
-                        }
-                    }
+                if n == 3 || (n == 2 && layers.contains(&candidate)) {
+                    next_layers.insert(candidate);
                 }
             }
         }
@@ -232,7 +177,107 @@ fn part2() -> usize {
 
     let p2 = layers.len();
 
-    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 170ms
+    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 75ms
 
     p2
+}
+
+pub struct Pos3Neighbors {
+    base: Pos3,
+    next: Option<Pos3>,
+}
+
+impl Pos3Neighbors {
+    fn new(base: Pos3) -> Self {
+        let mut next = base;
+        next.x -= 1;
+        next.y -= 1;
+        next.z -= 1;
+
+        Pos3Neighbors {
+            base,
+            next: Some(next),
+        }
+    }
+}
+
+impl Iterator for Pos3Neighbors {
+    type Item = Pos3;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let to_return = self.next.take();
+
+        if let Some(ref c) = to_return {
+            let mut next = Pos3::new(c.x + 1, c.y, c.z);
+
+            if next.x > self.base.x + 1 {
+                next.x = self.base.x - 1;
+                next.y += 1;
+            }
+
+            if next.y > self.base.y + 1 {
+                next.y = self.base.y - 1;
+                next.z += 1;
+            }
+
+            if next.z <= self.base.z + 1 {
+                self.next.replace(next);
+            }
+        }
+
+        to_return
+    }
+}
+
+pub struct Pos4Neighbors {
+    base: Pos4,
+    next: Option<Pos4>,
+}
+
+impl Pos4Neighbors {
+    fn new(base: Pos4) -> Self {
+        let mut next = base;
+        next.w -= 1;
+        next.x -= 1;
+        next.y -= 1;
+        next.z -= 1;
+
+        Pos4Neighbors {
+            base,
+            next: Some(next),
+        }
+    }
+}
+
+impl Iterator for Pos4Neighbors {
+    type Item = Pos4;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let to_return = self.next.take();
+
+        if let Some(ref c) = to_return {
+            let mut next = Pos4::new(c.w + 1, c.x, c.y, c.z);
+
+            if next.w > self.base.w + 1 {
+                next.w = self.base.w - 1;
+                next.x += 1;
+            }
+
+            if next.x > self.base.x + 1 {
+                next.x = self.base.x - 1;
+                next.y += 1;
+            }
+
+            if next.y > self.base.y + 1 {
+                next.y = self.base.y - 1;
+                next.z += 1;
+            }
+
+            if next.z <= self.base.z + 1 {
+                self.next.replace(next);
+            }
+        }
+
+        to_return
+    }
 }
