@@ -1,3 +1,5 @@
+#![allow(clippy::derive_hash_xor_eq)]
+
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::hint::unreachable_unchecked;

@@ -24,7 +24,7 @@ fn main() {
     let seats = parse_seats();
 
     let p1 = part1(seats.clone());
-    let p2 = part2(seats.clone());
+    let p2 = part2(seats);
 
     assert_eq!(p1, 2166);
     assert_eq!(p2, 1955);
