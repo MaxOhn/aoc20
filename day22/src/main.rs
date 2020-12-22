@@ -5,6 +5,17 @@ use std::io::{BufRead, BufReader};
 use std::time::Instant;
 use util::Parse;
 
+macro_rules! min_max {
+    ($deck:ident, $len:ident) => {
+        $deck
+            .iter()
+            .take($len as usize)
+            .fold((u8::MAX, 0), |(min, max), &card| {
+                (min.min(card), max.max(card))
+            })
+    };
+}
+
 type Deck = VecDeque<u8>;
 
 fn main() {
@@ -26,8 +37,12 @@ fn part1() -> usize {
     let (mut deck1, mut deck2) = parse_decks();
 
     while !(deck1.is_empty() || deck2.is_empty()) {
-        let card1 = deck1.pop_front().unwrap();
-        let card2 = deck2.pop_front().unwrap();
+        let card1 = deck1
+            .pop_front()
+            .unwrap_or_else(|| unsafe { unreachable_unchecked() });
+        let card2 = deck2
+            .pop_front()
+            .unwrap_or_else(|| unsafe { unreachable_unchecked() });
 
         if card1 > card2 {
             deck1.push_back(card1);
@@ -52,7 +67,7 @@ fn part2() -> usize {
     let (_, deck) = recurse(deck1, deck2);
     let p2 = score(deck);
 
-    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 91ms
+    println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 6ms
 
     p2
 }
@@ -61,9 +76,7 @@ fn recurse(mut deck1: Deck, mut deck2: Deck) -> (Player, Deck) {
     let mut history = HashSet::new();
 
     loop {
-        let hash = (hash(&deck1), hash(&deck2));
-
-        if deck2.is_empty() || !history.insert(hash) {
+        if !history.insert((hash(&deck1), hash(&deck2))) {
             return (Player::One, deck1);
         }
 
@@ -77,10 +90,19 @@ fn recurse(mut deck1: Deck, mut deck2: Deck) -> (Player, Deck) {
             .unwrap_or_else(|| unsafe { unreachable_unchecked() });
 
         let winner = if deck1.len() >= card1 as usize && deck2.len() >= card2 as usize {
-            let deck1_prefix = deck1.iter().copied().take(card1 as usize).collect();
-            let deck2_prefix = deck2.iter().copied().take(card2 as usize).collect();
+            let (min1, max1) = min_max!(deck1, card1);
+            let (min2, max2) = min_max!(deck2, card2);
 
-            recurse(deck1_prefix, deck2_prefix).0
+            if max1 > max2
+                && min1.min(min2) >= card1.min(deck1.len() as u8) + card2.min(deck2.len() as u8)
+            {
+                Player::One
+            } else {
+                let deck1 = deck1.iter().copied().take(card1 as usize).collect();
+                let deck2 = deck2.iter().copied().take(card2 as usize).collect();
+
+                recurse(deck1, deck2).0
+            }
         } else if card1 > card2 {
             Player::One
         } else {
@@ -91,6 +113,10 @@ fn recurse(mut deck1: Deck, mut deck2: Deck) -> (Player, Deck) {
             Player::One => {
                 deck1.push_back(card1);
                 deck1.push_back(card2);
+
+                if deck2.is_empty() {
+                    return (Player::One, deck1);
+                }
             }
             Player::Two => {
                 deck2.push_back(card2);
@@ -108,9 +134,8 @@ fn score(deck: Deck) -> usize {
         .sum()
 }
 
-fn hash(deck: &Deck) -> u128 {
-    deck.into_iter()
-        .fold(0, |hash, card| (hash << 6) + *card as u128)
+fn hash(deck: &Deck) -> u64 {
+    deck.iter().fold(0, |hash, card| hash | (1 << *card))
 }
 
 fn parse_decks() -> (Deck, Deck) {
