@@ -151,7 +151,7 @@ impl Tile {
 
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Tile {}:\n", self.id)?;
+        writeln!(f, "Tile {}:", self.id)?;
         let mut rows = self.chunks(self.w);
 
         if let Some(first) = rows.next() {
@@ -445,7 +445,7 @@ fn part2() -> usize {
         }
     }
 
-    let p2 = picture.iter().filter(|&&p| p == b'#').count() - mark_monsters_iter(&mut picture);
+    let p2 = bytecount::count(&picture, b'#') - mark_monsters_iter(&mut picture);
 
     println!("Part 2: {} [{:?}]", p2, start.elapsed()); // 13ms
 
@@ -663,12 +663,12 @@ impl Grid for Picture {
 
 #[allow(dead_code)]
 fn check_valid(tiles: &[Vec<Tile>], w_outer: usize, w_inner: usize) -> bool {
-    for y in 0..w_outer {
-        assert_eq!(tiles[y].len(), w_outer, "row is missing tiles");
+    for row in tiles.iter() {
+        assert_eq!(row.len(), w_outer, "row is missing tiles");
 
         for x in 0..w_outer - 1 {
-            let left = &tiles[y][x];
-            let right = &tiles[y][x + 1];
+            let left = &row[x];
+            let right = &row[x + 1];
 
             for y_inner in 0..w_inner {
                 if left[w_inner - 1 + w_inner * y_inner] != right[w_inner * y_inner] {

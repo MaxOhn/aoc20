@@ -8,3 +8,6 @@ edition = "2018"
 
 [dependencies.hashbrown]
 version = "0.9"
+
+[dependencies.bytecount]
+version = "0.6"
