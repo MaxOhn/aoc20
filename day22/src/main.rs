@@ -61,7 +61,7 @@ fn recurse(mut deck1: Deck, mut deck2: Deck) -> (Player, Deck) {
     let mut history = HashSet::new();
 
     loop {
-        let hash = hash(&deck1, &deck2);
+        let hash = (hash(&deck1), hash(&deck2));
 
         if deck2.is_empty() || !history.insert(hash) {
             return (Player::One, deck1);
@@ -108,21 +108,9 @@ fn score(deck: Deck) -> usize {
         .sum()
 }
 
-fn hash(deck1: &Deck, deck2: &Deck) -> (u128, u128) {
-    let mut hash1 = 1;
-    let mut hash2 = 1;
-
-    for &card in deck1 {
-        hash1 |= card as u128;
-        hash1 <<= 7;
-    }
-
-    for &card in deck2 {
-        hash2 |= card as u128;
-        hash2 <<= 7;
-    }
-
-    (hash1, hash2)
+fn hash(deck: &Deck) -> u128 {
+    deck.into_iter()
+        .fold(0, |hash, card| (hash << 6) + *card as u128)
 }
 
 fn parse_decks() -> (Deck, Deck) {
