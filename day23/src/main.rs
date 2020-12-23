@@ -2,15 +2,134 @@ use std::hint::unreachable_unchecked;
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
 
+macro_rules! get {
+    ($slice:expr, $idx:expr) => {
+        unsafe { *$slice.get_unchecked($idx) }
+    };
+}
+
+macro_rules! get_mut {
+    ($slice:expr, $idx:expr) => {
+        $slice.get_unchecked_mut($idx)
+    };
+}
+
+macro_rules! set {
+    ($slice:expr, $idx:expr, $val:expr) => {
+        unsafe { *get_mut!($slice, $idx) = $val }
+    };
+}
+
+macro_rules! swap {
+    ($slice:expr, $i:expr, $j:expr) => {
+        unsafe { std::ptr::swap(get_mut!($slice, $i), get_mut!($slice, $j)) }
+    };
+}
+
 fn main() {
     let p1 = part1();
     let p2 = part2();
+
+    // let p1 = _part1_old();
+    // let p2 = _part2_old();
 
     assert_eq!(p1, 27_865_934);
     assert_eq!(p2, 170_836_011_000);
 }
 
-fn part1() -> u32 {
+fn part1() -> usize {
+    let start = Instant::now();
+
+    let mut n = parse_input();
+    let mut circle = vec![0; 10];
+
+    let last = n % 10;
+    let mut curr = last;
+    n /= 10;
+
+    while n > 0 {
+        let prev = n % 10;
+        n /= 10;
+        set!(circle, prev, curr);
+        curr = prev;
+    }
+
+    set!(circle, last, curr);
+
+    run(&mut circle, curr, 100);
+
+    let p1 = std::iter::successors(Some(1), |&n| Some(get!(circle, n)))
+        .skip(1)
+        .take(8)
+        .fold(0, |res, n| res * 10 + n);
+
+    println!("Part 1: {} {:?}", p1, start.elapsed()); // 95µs
+
+    p1
+}
+
+fn part2() -> usize {
+    let start = Instant::now();
+
+    let mut n = parse_input();
+    let mut circle: Vec<_> = (1..=1_000_001).collect();
+
+    let last = n % 10;
+    let mut curr = last;
+    n /= 10;
+
+    while n > 0 {
+        let prev = n % 10;
+        n /= 10;
+        set!(circle, prev, curr);
+        curr = prev;
+    }
+
+    set!(circle, last, 10);
+    set!(circle, 1_000_000, curr);
+
+    run(&mut circle, curr, 10_000_000);
+
+    let cup1 = get!(circle, 1);
+    let p2 = cup1 * get!(circle, cup1);
+
+    println!("Part 2: {} {:?}", p2, start.elapsed()); // 539ms
+
+    p2
+}
+
+fn run(circle: &mut [usize], mut curr: usize, moves: usize) {
+    let len = circle.len() - 1;
+
+    for _ in 0..moves {
+        let a = get!(circle, curr);
+        let b = get!(circle, a);
+        let c = get!(circle, b);
+
+        let mut target = if curr == 1 { len } else { curr - 1 };
+
+        while a == target || b == target || c == target {
+            target = if target == 1 { len } else { target - 1 };
+        }
+
+        swap!(circle, curr, target);
+        swap!(circle, curr, c);
+        curr = get!(circle, curr);
+    }
+}
+
+fn parse_input() -> usize {
+    let file =
+        std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
+    let mut input = BufReader::new(file);
+
+    let mut line = String::new();
+    let _ = input.read_line(&mut line);
+
+    util::Parse::parse(line.as_bytes())
+}
+
+fn _part1_old() -> u32 {
     let start = Instant::now();
     let file =
         std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
@@ -150,7 +269,7 @@ fn part1() -> u32 {
     p1
 }
 
-fn part2() -> u64 {
+fn _part2_old() -> u64 {
     let start = Instant::now();
     let file =
         std::fs::File::open("./input").unwrap_or_else(|_| unsafe { unreachable_unchecked() });
